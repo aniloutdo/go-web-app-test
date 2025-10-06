@@ -22,5 +22,5 @@ spec:
             - name: API_SECRET
               valueFrom: dummysecret
                 secretKeyRef:
-                 name: go-web-app-secret
+                  name: go-web-app-secret
                   key: api_secret
