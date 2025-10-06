@@ -20,7 +20,7 @@ spec:
             - containerPort: 8080
           env:
             - name: API_SECRET
-              value: dummysecret
+              valueFrom: dummysecret
                 secretKeyRef:
                  name: go-web-app-secret
                   key: api_secret
