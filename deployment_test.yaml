@@ -1,0 +1,26 @@
+# k8s/base/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-web-app-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: go-web-app
+  template:
+    metadata:
+      labels:
+        app: go-web-app
+    spec:
+      containers:
+      - name: go-web-app
+        image: anilkumar92/test-go-web-app:v1 # Replace with your image
+        ports:
+        - containerPort: 8080
+        env:
+        - name: API_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: go-hello-secret
+              key: api_secret

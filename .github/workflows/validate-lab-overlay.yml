@@ -1,0 +1,47 @@
+# .github/workflows/validate-lab-overlay.yml
+name: Validate Kustomize lab overlay
+
+on:
+  pull_request:
+    paths:
+      - 'services/go-web-app/**'
+      - 'clusters/**'
+      - '.github/workflows/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install kustomize
+        run: |
+          curl -sLo /tmp/kustomize.tar.gz https://github.com/kubernetes-sigs/kustomize/releases/latest/download/kustomize_kustomize.tar.gz || true
+          # fallback to downloading via curl + tar extraction (this is robust in many runners)
+          # If the above fails, fetch via install script:
+          curl -sLo /usr/local/bin/kustomize https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh || true
+          chmod +x /usr/local/bin/kustomize || true
+          kustomize version || true
+
+      - name: Build the lab overlay
+        run: |
+          set -e
+          kustomize build services/hello-go/overlays/lab > /tmp/go-web-app-lab.yaml
+          echo "Generated manifest size: $(wc -c /tmp/go-web-app-lab.yaml)"
+
+      - name: Install kubeval
+        run: |
+          curl -sL -o /tmp/kubeval.tar.gz https://github.com/instrumenta/kubeval/releases/latest/download/kubeval-linux-amd64.tar.gz
+          tar -xzf /tmp/kubeval.tar.gz -C /tmp
+          sudo mv /tmp/kubeval /usr/local/bin/
+          kubeval --version
+
+      - name: Validate manifests with kubeval
+        run: |
+          kubeval /tmp/go-web-app-lab.yaml --strict --ignore-missing-schemas || (echo "kubeval found issues" && exit 1)
+
+      - name: Print manifest (for reviewers)
+        run: |
+          echo "----- built manifest -----"
+          sed -n '1,200p' /tmp/hello-go-lab.yaml || true

@@ -1,0 +1,19 @@
+# k8s/base/kustomization.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../base
+  - deployment.yaml
+  - service.yaml
+
+#patch to update replicas
+
+patchesStrategicMerge:
+  - replicas-patch.yaml
+
+
+ #  override image to the one you pushed 
+images:
+  - name: replace-me/go-web-app
+    newName: anilkumar92/go-web-app
+    newTag: v2 
